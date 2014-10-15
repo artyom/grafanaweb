@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"crypto/tls"
 	"encoding/base64"
 	"flag"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/artyom/autoflags"
 	"github.com/artyom/basicauth"
@@ -69,10 +71,18 @@ func main() {
 		http.Handle("/", http.FileServer(http.Dir(config.Root)))
 	}
 
-	if config.SSL {
-		log.Fatal(http.ListenAndServeTLS(config.Addr, config.Cert, config.Key, nil))
+	server := &http.Server{
+		Addr:           config.Addr,
+		ReadTimeout:    60 * time.Second,
+		WriteTimeout:   60 * time.Second,
+		MaxHeaderBytes: 1 << 16,
+		TLSConfig:      &tls.Config{MinVersion: tls.VersionTLS10},
 	}
-	log.Fatal(http.ListenAndServe(config.Addr, nil))
+
+	if config.SSL {
+		log.Fatal(server.ListenAndServeTLS(config.Cert, config.Key))
+	}
+	log.Fatal(server.ListenAndServe())
 }
 
 // loadCredentials reads credentials from file and loads them to realm. Empty
