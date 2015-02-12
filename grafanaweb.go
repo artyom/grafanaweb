@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SlyMarbo/spdy"
 	"github.com/artyom/autoflags"
 	"github.com/artyom/basicauth"
 )
@@ -78,6 +79,7 @@ func main() {
 		MaxHeaderBytes: 1 << 16,
 		TLSConfig:      &tls.Config{MinVersion: tls.VersionTLS10},
 	}
+	spdy.AddSPDY(server)
 
 	if config.SSL {
 		log.Fatal(server.ListenAndServeTLS(config.Cert, config.Key))
